@@ -528,8 +528,8 @@ const ChatbotPage: React.FC = () => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Enhanced AI Input Area - Mobile optimized with floating transparent effect */}
-        <div className="border-t border-elden-gold/20 p-3 sm:p-4 bg-black/20 backdrop-blur-sm">
+        {/* Enhanced AI Input Area - Mobile optimized with no blur or border */}
+        <div className="p-3 sm:p-4 bg-black/20">
           <div className="max-w-4xl mx-auto mb-4">
             {/* Main Input Container - Less floating, more grounded */}
             <motion.div
