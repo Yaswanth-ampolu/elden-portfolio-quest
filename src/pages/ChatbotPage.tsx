@@ -9,45 +9,9 @@ interface Message {
   sender: 'user' | 'ai';
   timestamp: Date;
   provider?: string;
-  isStreaming?: boolean;
 }
 
-// Streaming text component
-const StreamingText: React.FC<{ text: string; isComplete: boolean }> = ({ text, isComplete }) => {
-  const [displayedText, setDisplayedText] = useState('');
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  useEffect(() => {
-    if (isComplete && displayedText !== text) {
-      setDisplayedText(text);
-      return;
-    }
-
-    if (currentIndex < text.length) {
-      const timer = setTimeout(() => {
-        setDisplayedText(text.slice(0, currentIndex + 1));
-        setCurrentIndex(currentIndex + 1);
-      }, 30); // Adjust speed here (lower = faster)
-
-      return () => clearTimeout(timer);
-    }
-  }, [currentIndex, text, isComplete, displayedText]);
-
-  return (
-    <span>
-      {displayedText}
-      {!isComplete && currentIndex < text.length && (
-        <motion.span
-          animate={{ opacity: [1, 0] }}
-          transition={{ duration: 0.8, repeat: Infinity }}
-          className="inline-block w-2 h-4 bg-elden-gold ml-1"
-        />
-      )}
-    </span>
-  );
-};
-
-// Pattern-based responses (same as before)
+// Pattern-based responses
 const ELDEN_RESPONSES = {
   greeting: [
     "Greetings, noble seeker! I am the guardian of Yaswanth's knowledge. What wisdom dost thou seek?",
@@ -278,9 +242,10 @@ Bad: [Don't list email, location, and everything else]`;
       contact: /contact|email|phone|reach|linkedin|github|communication|number/i,
       education: /education|degree|study|college|university|b\.?tech|aditya/i,
       // More specific patterns
-      phone: /phone|number|call|mobile|contact.*number/i,
+      phone: /phone|number|call|mobile|contact.*number|yaswanth.*number/i,
       email: /email|mail|@/i,
       location: /where|location|city|place|bengaluru|bangalore/i,
+      who: /who.*yaswanth|yaswanth.*who|about yaswanth|tell.*yaswanth/i,
       general: /how are you|what.*you|who.*you|tell me about yourself|nice|good|thank|cool|awesome/i
     };
 
@@ -295,6 +260,10 @@ Bad: [Don't list email, location, and everything else]`;
     
     if (patterns.location.test(input)) {
       return "The Code-Bearer dwells in the bustling realm of Bengaluru, India, where he weaves AI magic at SierraEdge!";
+    }
+
+    if (patterns.who.test(input)) {
+      return "Ah, thou seekest knowledge of the legendary Code-Bearer! Yaswanth Ampolu is an AI Engineer at SierraEdge, master of Python (95%), Machine Learning (90%), React (85%), and TypeScript (80%). A noble warrior in the realm of artificial intelligence and full-stack development!";
     }
 
     // Check other patterns
@@ -317,7 +286,6 @@ const ChatbotPage: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -351,38 +319,25 @@ const ChatbotPage: React.FC = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputValue;
     setInputValue('');
     setIsLoading(true);
 
     try {
-      const result = await chatbotEngine.current.respond(inputValue);
+      const result = await chatbotEngine.current.respond(currentInput);
       
-      const aiMessageId = (Date.now() + 1).toString();
       const aiMessage: Message = {
-        id: aiMessageId,
+        id: (Date.now() + 1).toString(),
         content: result.response,
         sender: 'ai',
         timestamp: new Date(),
-        provider: result.provider,
-        isStreaming: true
+        provider: result.provider
       };
       
-      setStreamingMessageId(aiMessageId);
       setMessages(prev => [...prev, aiMessage]);
       
-      // Complete streaming after a delay
-      setTimeout(() => {
-        setStreamingMessageId(null);
-        setMessages(prev => 
-          prev.map(msg => 
-            msg.id === aiMessageId 
-              ? { ...msg, isStreaming: false }
-              : msg
-          )
-        );
-      }, result.response.length * 30 + 500); // Adjust timing based on message length
-      
     } catch (error) {
+      console.error('Chat error:', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: "Forgive me, seeker... The mystical channels are disrupted. Please try thy query again in a moment.",
@@ -538,14 +493,7 @@ const ChatbotPage: React.FC = () => {
                   )}
                 >
                   <div className="font-lore leading-relaxed text-sm sm:text-base mb-2">
-                    {message.sender === 'ai' && message.isStreaming ? (
-                      <StreamingText 
-                        text={message.content} 
-                        isComplete={streamingMessageId !== message.id}
-                      />
-                    ) : (
-                      message.content
-                    )}
+                    {message.content}
                   </div>
                   <div className="flex items-center justify-between text-xs text-elden-ash/60">
                     <span className="flex items-center gap-1">
