@@ -42,8 +42,8 @@ const ELDEN_RESPONSES = {
     "Located in the bustling realm of Bengaluru, India, he remains reachable through multiple mystical channels of modern communication!"
   ],
   education: [
-    "He earned his B.Tech in Information Technology from Aditya Institute with CGPA 8.5/10, completing his academic quest in 2024 with honors in AI and web mastery!",
-    "His educational journey includes B.Tech IT (8.5 CGPA), Intermediate (94%), and 10th grade (92%) - each milestone marking his ascension in the realm of knowledge!",
+    "He earned his B.Tech in Information Technology from Aditya Institute with CGPA 7.5/10, completing his academic quest in 2024 with honors in AI and web mastery!",
+    "His educational journey includes B.Tech IT (7.5 CGPA), Intermediate (94%), and 10th grade (92%) - each milestone marking his ascension in the realm of knowledge!",
     "Formally trained in the mystical arts at Aditya Institute of Technology and Management, specializing in AI, ML, and the sacred sciences of software development!"
   ],
   default: [
@@ -155,7 +155,7 @@ YASWANTH'S INFO:
 - Current Role: AI Application Engineer at SierraEdge Pvt Ltd (April 2024-Present)
 - Location: Bengaluru, India  
 - Skills: Python (95%), Machine Learning (90%), React (85%), TypeScript (80%), AI/ML, Data Science
-- Education: B.Tech IT from Aditya Institute (CGPA 8.5/10)
+- Education: B.Tech IT from Aditya Institute (CGPA 7.5/10)
 - Contact: ampoluyaswanth2002@gmail.com, +91 6305151728
 - GitHub: Yaswanth-ampolu (20+ repositories)
 - Notable Projects: MotivHater, Insurance Claim Prediction, RentalTruth-Scrapper, Facial Emotion Recognition

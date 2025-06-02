@@ -11,14 +11,12 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   useEffect(() => {
-    // Load the Elden Ring background CSS
     const link = document.createElement('link');
     link.rel = 'stylesheet';
     link.href = '/assets/backgrounds/elden-ring-bg.css';
     document.head.appendChild(link);
 
     return () => {
-      // Cleanup: remove the CSS link when component unmounts
       if (document.head.contains(link)) {
         document.head.removeChild(link);
       }
@@ -29,20 +27,17 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     <div className="min-h-screen relative overflow-hidden elden-ring-bg">
       <ParticleEffect />
       
-      {/* Scroll Progress Indicator */}
       <ScrollIndicator 
         type="bar" 
         position="bottom-right"
         showPercentage={false}
       />
       
-      {/* Back to Top Button */}
       <BackToTopButton threshold={400} />
       
-      {/* Floating Contact Button */}
       <FloatingContact />
       
-      <div className="container mx-auto px-4 py-8">
+      <div className="relative z-10">
         <Navigation />
         <main>
           {children}

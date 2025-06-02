@@ -49,7 +49,7 @@ const Experience: React.FC = () => {
       period: "2020 - 2024",
       location: "Tekkali, Andhra Pradesh",
       description: "Comprehensive program covering software development, AI/ML, data structures, algorithms, and modern programming languages. Specialized in artificial intelligence and machine learning applications.",
-      gpa: "CGPA: 8.5/10",
+      gpa: "CGPA: 7.5/10",
       coursework: ["Machine Learning", "Data Structures", "Web Development", "Database Management", "AI & Neural Networks"]
     },
     {

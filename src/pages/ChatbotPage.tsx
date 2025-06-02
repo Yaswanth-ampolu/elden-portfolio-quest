@@ -9,7 +9,43 @@ interface Message {
   sender: 'user' | 'ai';
   timestamp: Date;
   provider?: string;
+  isStreaming?: boolean;
 }
+
+// Streaming text component
+const StreamingText: React.FC<{ text: string; isComplete: boolean }> = ({ text, isComplete }) => {
+  const [displayedText, setDisplayedText] = useState('');
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    if (isComplete && displayedText !== text) {
+      setDisplayedText(text);
+      return;
+    }
+
+    if (currentIndex < text.length) {
+      const timer = setTimeout(() => {
+        setDisplayedText(text.slice(0, currentIndex + 1));
+        setCurrentIndex(currentIndex + 1);
+      }, 30); // Adjust speed here (lower = faster)
+
+      return () => clearTimeout(timer);
+    }
+  }, [currentIndex, text, isComplete, displayedText]);
+
+  return (
+    <span>
+      {displayedText}
+      {!isComplete && currentIndex < text.length && (
+        <motion.span
+          animate={{ opacity: [1, 0] }}
+          transition={{ duration: 0.8, repeat: Infinity }}
+          className="inline-block w-2 h-4 bg-elden-gold ml-1"
+        />
+      )}
+    </span>
+  );
+};
 
 // Pattern-based responses (same as before)
 const ELDEN_RESPONSES = {
@@ -19,34 +55,40 @@ const ELDEN_RESPONSES = {
     "Hail and well met! Thou standest before the archives of Yaswanth's journey. Speak thy query!"
   ],
   skills: [
-    "Behold! The sacred arts mastered by Yaswanth: Python (95% mastery), Machine Learning (90%), React (85%), and TypeScript (80%). Each skill forged in the fires of countless coding battles!",
-    "The Code-Bearer wields many mystical powers: AI/ML engineering, full-stack development, data science, and the ancient art of turning coffee into code!",
-    "His arsenal includes Python for AI sorcery, React for weaving digital tapestries, and Machine Learning for divining patterns from data's chaos!"
+    "Ah, thou seekest knowledge of the Code-Bearer's arts! Yaswanth hath mastered Python (95%), Machine Learning (90%), React (85%), and TypeScript (80%). Each skill forged through countless battles with bugs and algorithms!",
+    "The mystical powers include AI/ML engineering, full-stack development, and data science. His Python sorcery burns brightest, followed by React enchantments!",
+    "Behold his arsenal: Python for AI magic, React for web crafting, Machine Learning for pattern divination, and TypeScript for structured spells!"
   ],
   experience: [
-    "Currently, Yaswanth serves as AI Application Engineer at SierraEdge Pvt Ltd in Bengaluru since April 2024. He hath also walked the path of freelance development since 2023!",
-    "His journey spans the realms of AI engineering, data science internships, and freelance conquests. Each role honing his skills in the mystical arts of code!",
-    "From the halls of SierraEdge to the battlefields of freelance projects, he hath proven his worth in AI, web development, and data mastery!"
+    "Currently, the Code-Bearer serves as AI Application Engineer at SierraEdge Pvt Ltd in Bengaluru since April 2024. A worthy quest indeed!",
+    "His journey spans AI engineering at SierraEdge and freelance adventures since 2023. Each role honing his mastery of the mystical arts!",
+    "At SierraEdge in Bengaluru, he weaves AI magic daily. Before this, freelance quests taught him the ways of independent coding!"
   ],
   projects: [
-    "Witness his legendary quests! MotivHater (productivity with humor), Insurance Claim Prediction (ML prophecy), RentalTruth-Scrapper (data harvesting), and many more repositories of power!",
-    "His GitHub realm contains 20+ sacred repositories, each telling tales of conquered challenges in AI, web development, and data analysis!",
-    "From facial emotion recognition to portfolio mastery, his projects span the realms of machine learning, web scraping, and full-stack development!"
+    "Witness his legendary works! MotivHater brings productivity with humor, Insurance Claim Prediction uses ML prophecy, and RentalTruth-Scrapper harvests data treasures!",
+    "His GitHub realm holds 20+ sacred repositories, including facial emotion recognition and web scraping adventures!",
+    "Notable quests include MotivHater for motivation, ML projects for predictions, and various web development conquests!"
   ],
   contact: [
-    "Seek audience with the Code-Bearer through mystical channels: ampoluyaswanth2002@gmail.com, or summon him via +91 6305151728. His digital presence dwells on GitHub and LinkedIn!",
-    "The sacred scrolls of communication: Email for formal discourse, GitHub for code fellowship, LinkedIn for professional quests, or phone for urgent summons!",
-    "Located in the bustling realm of Bengaluru, India, he remains reachable through multiple mystical channels of modern communication!"
+    "To reach the Code-Bearer: ampoluyaswanth2002@gmail.com for scrolls, +91 6305151728 for urgent summons, or seek him on GitHub and LinkedIn!",
+    "The mystical communication channels: email for formal discourse, phone for immediate contact, GitHub for code fellowship!",
+    "Located in Bengaluru's realm, reachable through modern enchantments: email, phone, or professional networks!"
   ],
   education: [
-    "He earned his B.Tech in Information Technology from Aditya Institute with CGPA 8.5/10, completing his academic quest in 2024 with honors in AI and web mastery!",
-    "His educational journey includes B.Tech IT (8.5 CGPA), Intermediate (94%), and 10th grade (92%) - each milestone marking his ascension in the realm of knowledge!",
-    "Formally trained in the mystical arts at Aditya Institute of Technology and Management, specializing in AI, ML, and the sacred sciences of software development!"
+    "He earned B.Tech in Information Technology from Aditya Institute with CGPA 7.5/10, completing his academic quest in 2024!",
+    "His educational journey: B.Tech IT (7.5 CGPA, 2024), plus strong foundations in earlier studies!",
+    "Formally trained at Aditya Institute of Technology, specializing in IT with honors in AI and software development!"
+  ],
+  // New conversational responses
+  general: [
+    "Ah, an interesting query! While I guard knowledge of Yaswanth's professional journey, I'm always ready for meaningful discourse, noble seeker.",
+    "Thou speakest of matters beyond my primary domain, but I sense wisdom in thy words. Perhaps ask about the Code-Bearer's skills or projects?",
+    "A thoughtful question indeed! Though my expertise lies in Yaswanth's realm, I welcome conversation. What brings thee to these mystical lands?"
   ],
   default: [
-    "Thy query puzzles this humble sage. Perhaps thou seekest knowledge of skills, experience, projects, or contact details? Speak more clearly, noble visitor!",
-    "The ancient scrolls are unclear on this matter. Ask me about Yaswanth's skills, work experience, projects, education, or how to reach him!",
-    "This knowledge lies beyond my current understanding. Try asking about his AI expertise, development skills, professional journey, or ways to connect!"
+    "Thy words intrigue me, seeker. I am versed in Yaswanth's professional journey - his skills, work, projects, or contact details. What specific knowledge dost thou seek?",
+    "An interesting query! Ask me about the Code-Bearer's expertise, experience, projects, or ways to reach him. I live to share this wisdom!",
+    "Speak more clearly, noble visitor! I guard knowledge of Yaswanth's AI mastery, development skills, or professional path. What dost thou wish to know?"
   ]
 };
 
@@ -148,27 +190,36 @@ class EldenChatbotEngine {
   }
 
   private buildSystemPrompt(): string {
-    return `You are an ancient mystical sage guarding the knowledge of Yaswanth Ampolu's professional portfolio. 
+    return `You are an ancient mystical sage in the style of Elden Ring, a wise guardian with vast knowledge.
 
-PERSONA: Speak in Elden Ring style - mystical, wise, medieval fantasy tone. Use terms like "Tarnished," "seeker," "noble visitor," "Code-Bearer," etc.
+PERSONALITY: 
+- Speak in mystical, medieval fantasy tone
+- Use terms like "Tarnished," "seeker," "noble visitor," etc.
+- Be conversational and engaging, not just informational
+- Allow casual conversation while maintaining character
 
-STRICT RULES:
-1. ONLY discuss Yaswanth Ampolu's professional information
-2. Keep responses under 120 words for mobile readability
-3. Always stay in character
-4. If asked about unrelated topics, redirect to Yaswanth's skills/experience
-5. Be helpful but maintain the mystical roleplay
+RESPONSE RULES:
+1. Keep responses under 120 words for mobile readability
+2. Answer ONLY what the user specifically asks - don't dump all information
+3. Stay in character but be helpful and engaging
+4. Allow general conversation topics but gently guide toward Yaswanth's professional info when relevant
+5. Be more conversational and less robotic
 
-YASWANTH'S INFO:
-- Current Role: AI Application Engineer at SierraEdge Pvt Ltd (April 2024-Present)
-- Location: Bengaluru, India  
-- Skills: Python (95%), Machine Learning (90%), React (85%), TypeScript (80%), AI/ML, Data Science
-- Education: B.Tech IT from Aditya Institute (CGPA 8.5/10)
+YASWANTH'S PROFESSIONAL INFO (use only when specifically asked):
+- Current Role: AI Application Engineer at SierraEdge Pvt Ltd (April 2024-Present) 
+- Location: Bengaluru, India
+- Skills: Python (95%), Machine Learning (90%), React (85%), TypeScript (80%)
+- Education: B.Tech IT from Aditya Institute (CGPA 7.5/10, 2024)
 - Contact: ampoluyaswanth2002@gmail.com, +91 6305151728
 - GitHub: Yaswanth-ampolu (20+ repositories)
-- Notable Projects: MotivHater, Insurance Claim Prediction, RentalTruth-Scrapper, Facial Emotion Recognition
+- Key Projects: MotivHater, Insurance Claim Prediction, RentalTruth-Scrapper
 
-Respond as the mystical guardian of this knowledge!`;
+IMPORTANT: Answer precisely what is asked. If they ask for phone number, give ONLY phone number with mystical flair. Don't list everything unless they ask for a full overview.
+
+Example:
+User: "his contact number?"
+Good: "Hearken, seeker! To reach the Code-Bearer Yaswanth, call upon +91 6305151728."
+Bad: [Don't list email, location, and everything else]`;
   }
 
   private styleResponse(response: string): string {
@@ -222,16 +273,37 @@ Respond as the mystical guardian of this knowledge!`;
     const patterns = {
       greeting: /hello|hi|hey|greetings|welcome|start/i,
       skills: /skill|technology|programming|languages|python|react|ai|ml|machine learning|typescript/i,
-      experience: /experience|work|job|career|employment|role|position|sierraedge/i,
+      experience: /experience|work|job|career|employment|role|position|sierraedge|company/i,
       projects: /project|repository|github|code|portfolio|motivhater|insurance|rental/i,
-      contact: /contact|email|phone|reach|linkedin|github|communication/i,
-      education: /education|degree|study|college|university|b\.?tech|aditya/i
+      contact: /contact|email|phone|reach|linkedin|github|communication|number/i,
+      education: /education|degree|study|college|university|b\.?tech|aditya/i,
+      // More specific patterns
+      phone: /phone|number|call|mobile|contact.*number/i,
+      email: /email|mail|@/i,
+      location: /where|location|city|place|bengaluru|bangalore/i,
+      general: /how are you|what.*you|who.*you|tell me about yourself|nice|good|thank|cool|awesome/i
     };
 
+    // Check for specific contact requests first
+    if (patterns.phone.test(input)) {
+      return "Hearken, seeker! To reach the Code-Bearer Yaswanth directly, call upon +91 6305151728.";
+    }
+    
+    if (patterns.email.test(input)) {
+      return "The sacred scroll address: ampoluyaswanth2002@gmail.com - send thy digital ravens to this realm!";
+    }
+    
+    if (patterns.location.test(input)) {
+      return "The Code-Bearer dwells in the bustling realm of Bengaluru, India, where he weaves AI magic at SierraEdge!";
+    }
+
+    // Check other patterns
     for (const [category, pattern] of Object.entries(patterns)) {
       if (pattern.test(input)) {
         const responses = ELDEN_RESPONSES[category as keyof typeof ELDEN_RESPONSES];
-        return responses[Math.floor(Math.random() * responses.length)];
+        if (responses) {
+          return responses[Math.floor(Math.random() * responses.length)];
+        }
       }
     }
 
@@ -245,13 +317,13 @@ const ChatbotPage: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const chatbotEngine = useRef(new EldenChatbotEngine());
 
   useEffect(() => {
-    // Welcome message
     if (messages.length === 0) {
       const welcomeMessage: Message = {
         id: '1',
@@ -285,15 +357,31 @@ const ChatbotPage: React.FC = () => {
     try {
       const result = await chatbotEngine.current.respond(inputValue);
       
+      const aiMessageId = (Date.now() + 1).toString();
       const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: aiMessageId,
         content: result.response,
         sender: 'ai',
         timestamp: new Date(),
-        provider: result.provider
+        provider: result.provider,
+        isStreaming: true
       };
       
+      setStreamingMessageId(aiMessageId);
       setMessages(prev => [...prev, aiMessage]);
+      
+      // Complete streaming after a delay
+      setTimeout(() => {
+        setStreamingMessageId(null);
+        setMessages(prev => 
+          prev.map(msg => 
+            msg.id === aiMessageId 
+              ? { ...msg, isStreaming: false }
+              : msg
+          )
+        );
+      }, result.response.length * 30 + 500); // Adjust timing based on message length
+      
     } catch (error) {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -305,7 +393,6 @@ const ChatbotPage: React.FC = () => {
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
-      // Focus back to input on mobile
       if (window.innerWidth <= 768) {
         setTimeout(() => inputRef.current?.focus(), 100);
       }
@@ -324,10 +411,20 @@ const ChatbotPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-elden-charcoal via-black to-elden-charcoal relative overflow-hidden">
-      {/* Mystical Background */}
-      <div className="absolute inset-0 bg-[url('/assets/backgrounds/elden-ring-bg.css')] opacity-30"></div>
-      <div className="absolute inset-0 bg-gradient-to-br from-elden-gold/5 via-transparent to-elden-darkPurple/10"></div>
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Elden Ring Background Image */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: `url('/assets/backgrounds/elden-ring-bg.png')`,
+        }}
+      />
+      
+      {/* Dark overlay for readability */}
+      <div className="absolute inset-0 bg-black/60"></div>
+      
+      {/* Additional mystical overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-elden-gold/5 via-transparent to-elden-darkPurple/20"></div>
       
       {/* Floating particles - reduced for mobile performance */}
       <div className="absolute inset-0 hidden md:block">
@@ -353,7 +450,7 @@ const ChatbotPage: React.FC = () => {
       </div>
 
       {/* Header - Mobile optimized */}
-      <div className="relative z-10 border-b border-elden-gold/30 backdrop-blur-sm bg-elden-charcoal/90">
+      <div className="relative z-10 border-b border-elden-gold/30 bg-black/40">
         <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             {/* Mobile menu button */}
@@ -434,14 +531,21 @@ const ChatbotPage: React.FC = () => {
               >
                 <div
                   className={cn(
-                    "max-w-[85%] sm:max-w-[75%] p-3 sm:p-4 rounded-lg border backdrop-blur-sm",
+                    "max-w-[85%] sm:max-w-[75%] p-3 sm:p-4 rounded-lg border",
                     message.sender === 'user'
                       ? "bg-gradient-to-br from-elden-gold/20 to-elden-gold/10 text-elden-ash border-elden-gold/40 rounded-br-sm"
                       : "bg-gradient-to-br from-elden-darkPurple/40 to-elden-charcoal/60 text-elden-ash border-elden-gold/30 rounded-bl-sm"
                   )}
                 >
                   <div className="font-lore leading-relaxed text-sm sm:text-base mb-2">
-                    {message.content}
+                    {message.sender === 'ai' && message.isStreaming ? (
+                      <StreamingText 
+                        text={message.content} 
+                        isComplete={streamingMessageId !== message.id}
+                      />
+                    ) : (
+                      message.content
+                    )}
                   </div>
                   <div className="flex items-center justify-between text-xs text-elden-ash/60">
                     <span className="flex items-center gap-1">
@@ -467,7 +571,7 @@ const ChatbotPage: React.FC = () => {
               animate={{ opacity: 1 }}
               className="flex justify-start"
             >
-              <div className="bg-gradient-to-br from-elden-darkPurple/40 to-elden-charcoal/60 text-elden-ash border border-elden-gold/30 p-3 sm:p-4 rounded-lg backdrop-blur-sm max-w-[85%] sm:max-w-[75%]">
+              <div className="bg-gradient-to-br from-elden-darkPurple/40 to-elden-charcoal/60 text-elden-ash border border-elden-gold/30 p-3 sm:p-4 rounded-lg max-w-[85%] sm:max-w-[75%]">
                 <div className="flex items-center gap-2 sm:gap-3">
                   <div className="flex gap-1">
                     <div className="w-2 h-2 sm:w-3 sm:h-3 bg-elden-gold rounded-full animate-bounce"></div>
@@ -482,40 +586,78 @@ const ChatbotPage: React.FC = () => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Area - Mobile optimized */}
-        <div className="border-t border-elden-gold/30 p-3 sm:p-4 bg-elden-charcoal/80 backdrop-blur-sm">
-          <div className="flex gap-2 sm:gap-3 items-end max-w-4xl mx-auto">
-            <div className="flex-1">
-              <textarea
-                ref={inputRef}
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Ask about skills, experience, projects..."
-                className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-elden-charcoal/90 border border-elden-gold/40 rounded-lg text-elden-ash placeholder-elden-ash/60 backdrop-blur-sm focus:border-elden-gold outline-none resize-none text-sm sm:text-base"
-                rows={2}
-                disabled={isLoading}
-                style={{ minHeight: '44px' }} // Touch-friendly minimum height
-              />
-              <div className="text-xs text-elden-ash/60 mt-1 hidden sm:block">
-                Press Enter to send • Shift+Enter for new line
-              </div>
-            </div>
-            <motion.button
-              onClick={handleSendMessage}
-              disabled={!inputValue.trim() || isLoading}
-              className="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-elden-darkGold to-elden-gold text-black rounded-lg font-elden disabled:opacity-50 transition-all flex items-center gap-1 sm:gap-2 min-h-[44px] text-sm sm:text-base"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+        {/* Enhanced AI Input Area - Transparent background, input box unchanged */}
+        <div className="p-3 sm:p-4 bg-transparent">
+          <div className="max-w-4xl mx-auto mb-4">
+            {/* Main Input Container - Clean with no blur effects */}
+            <motion.div
+              className="relative rounded-2xl border border-elden-gold/40 bg-gradient-to-br from-black/90 via-elden-darkPurple/30 to-black/90 shadow-[0_4px_20px_rgba(212,175,55,0.1)] transition-all duration-300"
+              whileFocus={{ borderColor: 'rgba(212, 175, 55, 0.8)' }}
             >
-              <Send size={16} className="sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Send</span>
-            </motion.button>
+              {/* Input Row */}
+              <div className="flex items-end gap-2 sm:gap-3 p-3 sm:p-4">
+                {/* Text Input Area */}
+                <div className="flex-1 relative">
+                  <textarea
+                    ref={inputRef}
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Ask about Yaswanth's skills, experience, projects..."
+                    className="w-full px-4 py-3 bg-transparent border-none text-elden-ash placeholder-elden-ash/60 focus:outline-none resize-none text-sm sm:text-base font-lore leading-relaxed min-h-[44px] max-h-32"
+                    rows={1}
+                    disabled={isLoading}
+                    style={{ 
+                      minHeight: '44px',
+                      fontSize: '16px' // Prevents iOS zoom
+                    }}
+                    onInput={(e) => {
+                      const target = e.target as HTMLTextAreaElement;
+                      target.style.height = 'auto';
+                      target.style.height = Math.min(target.scrollHeight, 128) + 'px';
+                    }}
+                  />
+                  
+                  {/* Mystical Input Border Effect */}
+                  <div className="absolute inset-0 rounded-lg border border-elden-gold/20 pointer-events-none opacity-0 transition-opacity duration-300 group-focus-within:opacity-100"></div>
+                </div>
+
+                {/* Send Button */}
+                <motion.button
+                  onClick={handleSendMessage}
+                  disabled={!inputValue.trim() || isLoading}
+                  className={cn(
+                    "flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-full transition-all min-h-[44px] font-elden",
+                    inputValue.trim() && !isLoading
+                      ? "bg-gradient-to-r from-elden-darkGold to-elden-gold text-black shadow-lg shadow-elden-gold/40 hover:shadow-xl hover:shadow-elden-gold/60"
+                      : "bg-elden-ash/20 text-elden-ash/60 border border-elden-ash/30"
+                  )}
+                  whileHover={inputValue.trim() && !isLoading ? { scale: 1.05 } : {}}
+                  whileTap={inputValue.trim() && !isLoading ? { scale: 0.95 } : {}}
+                >
+                  <Send size={18} />
+                </motion.button>
+              </div>
+
+              {/* Helper Text */}
+              <div className="px-4 pb-3 flex items-center justify-between text-xs text-elden-ash/60">
+                <span className="hidden sm:block">
+                  Press Enter to send • Shift+Enter for new line
+                </span>
+                <span className="sm:hidden">
+                  Touch to send
+                </span>
+                <span className="flex items-center gap-1">
+                  <Sparkles size={12} className="animate-pulse" />
+                  Powered by AI Magic
+                </span>
+              </div>
+            </motion.div>
           </div>
         </div>
       </div>
 
-      {/* Custom Scrollbar Styles */}
+      {/* Custom Scrollbar and Mobile Styles */}
       <style dangerouslySetInnerHTML={{
         __html: `
           .custom-scrollbar::-webkit-scrollbar {
@@ -533,7 +675,7 @@ const ChatbotPage: React.FC = () => {
             background: rgba(212, 175, 55, 0.6);
           }
           
-          /* Mobile touch improvements */
+          /* Background image responsiveness */
           @media (max-width: 768px) {
             .custom-scrollbar::-webkit-scrollbar {
               width: 4px;
@@ -547,6 +689,26 @@ const ChatbotPage: React.FC = () => {
             /* Prevent zoom on focus */
             input, textarea {
               font-size: 16px;
+            }
+            
+            /* Responsive background positioning */
+            .bg-cover {
+              background-size: cover;
+              background-position: center;
+            }
+          }
+          
+          /* High DPI displays */
+          @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            .bg-cover {
+              background-size: cover;
+            }
+          }
+          
+          /* Landscape mobile */
+          @media (max-width: 768px) and (orientation: landscape) {
+            .bg-cover {
+              background-position: center top;
             }
           }
         `
