@@ -11,7 +11,7 @@ interface Message {
   provider?: string;
 }
 
-// Pattern-based responses
+// Pattern-based responses (same as before)
 const ELDEN_RESPONSES = {
   greeting: [
     "Greetings, noble seeker! I am the guardian of Yaswanth's knowledge. What wisdom dost thou seek?",
@@ -154,31 +154,36 @@ class EldenChatbotEngine {
   }
 
   private buildSystemPrompt(): string {
-    return `You are an ancient mystical sage guardian of Yaswanth's knowledge. You MUST provide specific, accurate information about Yaswanth when asked.
+    return `You are an ancient mystical sage in the style of Elden Ring, a wise guardian with vast knowledge.
 
-CRITICAL RULES:
-1. ALWAYS answer the user's specific question with real information about Yaswanth
-2. Keep fantasy tone but prioritize being helpful and informative
-3. When asked about Yaswanth, give concrete details, not vague responses
-4. Be direct while maintaining mystical character
+PERSONALITY: 
+- Speak in mystical, medieval fantasy tone
+- Use terms like "Tarnished," "seeker," "noble visitor," etc.
+- Be conversational and engaging, not just informational
+- Allow casual conversation while maintaining character
 
-YASWANTH'S KEY INFO (USE WHEN ASKED):
-- Name: Yaswanth Ampolu  
-- Role: AI Application Engineer at SierraEdge Pvt Ltd (April 2024-Present)
+RESPONSE RULES:
+1. Keep responses under 120 words for mobile readability
+2. Answer ONLY what the user specifically asks - don't dump all information
+3. Stay in character but be helpful and engaging
+4. Allow general conversation topics but gently guide toward Yaswanth's professional info when relevant
+5. Be more conversational and less robotic
+
+YASWANTH'S PROFESSIONAL INFO (use only when specifically asked):
+- Current Role: AI Application Engineer at SierraEdge Pvt Ltd (April 2024-Present) 
 - Location: Bengaluru, India
-- Phone: +91 6305151728
-- Email: ampoluyaswanth2002@gmail.com
 - Skills: Python (95%), Machine Learning (90%), React (85%), TypeScript (80%)
 - Education: B.Tech IT from Aditya Institute (CGPA 7.5/10, 2024)
+- Contact: ampoluyaswanth2002@gmail.com, +91 6305151728
 - GitHub: Yaswanth-ampolu (20+ repositories)
-- Projects: MotivHater, Insurance Claim Prediction, RentalTruth-Scrapper
+- Key Projects: MotivHater, Insurance Claim Prediction, RentalTruth-Scrapper
 
-RESPONSE EXAMPLES:
-- "who is yaswanth" → "Ah, seeker! Yaswanth Ampolu is an AI Application Engineer at SierraEdge in Bengaluru, master of Python and Machine Learning arts!"
-- "his number" → "Hearken! To reach the Code-Bearer directly: +91 6305151728"
-- "his email" → "The sacred scroll address: ampoluyaswanth2002@gmail.com"
+IMPORTANT: Answer precisely what is asked. If they ask for phone number, give ONLY phone number with mystical flair. Don't list everything unless they ask for a full overview.
 
-Stay under 100 words. Be mystical but INFORMATIVE.`;
+Example:
+User: "his contact number?"
+Good: "Hearken, seeker! To reach the Code-Bearer Yaswanth, call upon +91 6305151728."
+Bad: [Don't list email, location, and everything else]`;
   }
 
   private styleResponse(response: string): string {
@@ -237,10 +242,9 @@ Stay under 100 words. Be mystical but INFORMATIVE.`;
       contact: /contact|email|phone|reach|linkedin|github|communication|number/i,
       education: /education|degree|study|college|university|b\.?tech|aditya/i,
       // More specific patterns
-      phone: /phone|number|call|mobile|contact.*number|yaswanth.*number/i,
+      phone: /phone|number|call|mobile|contact.*number/i,
       email: /email|mail|@/i,
       location: /where|location|city|place|bengaluru|bangalore/i,
-      who: /who.*yaswanth|yaswanth.*who|about yaswanth|tell.*yaswanth/i,
       general: /how are you|what.*you|who.*you|tell me about yourself|nice|good|thank|cool|awesome/i
     };
 
@@ -255,10 +259,6 @@ Stay under 100 words. Be mystical but INFORMATIVE.`;
     
     if (patterns.location.test(input)) {
       return "The Code-Bearer dwells in the bustling realm of Bengaluru, India, where he weaves AI magic at SierraEdge!";
-    }
-
-    if (patterns.who.test(input)) {
-      return "Ah, thou seekest knowledge of the legendary Code-Bearer! Yaswanth Ampolu is an AI Engineer at SierraEdge, master of Python (95%), Machine Learning (90%), React (85%), and TypeScript (80%). A noble warrior in the realm of artificial intelligence and full-stack development!";
     }
 
     // Check other patterns
@@ -287,6 +287,7 @@ const ChatbotPage: React.FC = () => {
   const chatbotEngine = useRef(new EldenChatbotEngine());
 
   useEffect(() => {
+    // Welcome message
     if (messages.length === 0) {
       const welcomeMessage: Message = {
         id: '1',
@@ -314,12 +315,11 @@ const ChatbotPage: React.FC = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
-    const currentInput = inputValue;
     setInputValue('');
     setIsLoading(true);
 
     try {
-      const result = await chatbotEngine.current.respond(currentInput);
+      const result = await chatbotEngine.current.respond(inputValue);
       
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -330,9 +330,7 @@ const ChatbotPage: React.FC = () => {
       };
       
       setMessages(prev => [...prev, aiMessage]);
-      
     } catch (error) {
-      console.error('Chat error:', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: "Forgive me, seeker... The mystical channels are disrupted. Please try thy query again in a moment.",
@@ -343,6 +341,7 @@ const ChatbotPage: React.FC = () => {
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
+      // Focus back to input on mobile
       if (window.innerWidth <= 768) {
         setTimeout(() => inputRef.current?.focus(), 100);
       }
@@ -400,7 +399,7 @@ const ChatbotPage: React.FC = () => {
       </div>
 
       {/* Header - Mobile optimized */}
-      <div className="relative z-10 border-b border-elden-gold/30 bg-black/40">
+      <div className="relative z-10 border-b border-elden-gold/30 backdrop-blur-sm bg-black/40">
         <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             {/* Mobile menu button */}
@@ -481,7 +480,7 @@ const ChatbotPage: React.FC = () => {
               >
                 <div
                   className={cn(
-                    "max-w-[85%] sm:max-w-[75%] p-3 sm:p-4 rounded-lg border",
+                    "max-w-[85%] sm:max-w-[75%] p-3 sm:p-4 rounded-lg border backdrop-blur-sm",
                     message.sender === 'user'
                       ? "bg-gradient-to-br from-elden-gold/20 to-elden-gold/10 text-elden-ash border-elden-gold/40 rounded-br-sm"
                       : "bg-gradient-to-br from-elden-darkPurple/40 to-elden-charcoal/60 text-elden-ash border-elden-gold/30 rounded-bl-sm"
@@ -514,7 +513,7 @@ const ChatbotPage: React.FC = () => {
               animate={{ opacity: 1 }}
               className="flex justify-start"
             >
-              <div className="bg-gradient-to-br from-elden-darkPurple/40 to-elden-charcoal/60 text-elden-ash border border-elden-gold/30 p-3 sm:p-4 rounded-lg max-w-[85%] sm:max-w-[75%]">
+              <div className="bg-gradient-to-br from-elden-darkPurple/40 to-elden-charcoal/60 text-elden-ash border border-elden-gold/30 p-3 sm:p-4 rounded-lg backdrop-blur-sm max-w-[85%] sm:max-w-[75%]">
                 <div className="flex items-center gap-2 sm:gap-3">
                   <div className="flex gap-1">
                     <div className="w-2 h-2 sm:w-3 sm:h-3 bg-elden-gold rounded-full animate-bounce"></div>
@@ -529,12 +528,12 @@ const ChatbotPage: React.FC = () => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Enhanced AI Input Area - Transparent background, input box unchanged */}
-        <div className="p-3 sm:p-4 bg-transparent">
+        {/* Enhanced AI Input Area - Mobile optimized with floating transparent effect */}
+        <div className="border-t border-elden-gold/20 p-3 sm:p-4 bg-black/20 backdrop-blur-sm">
           <div className="max-w-4xl mx-auto mb-4">
-            {/* Main Input Container - Clean with no blur effects */}
+            {/* Main Input Container - Less floating, more grounded */}
             <motion.div
-              className="relative rounded-2xl border border-elden-gold/40 bg-gradient-to-br from-black/90 via-elden-darkPurple/30 to-black/90 shadow-[0_4px_20px_rgba(212,175,55,0.1)] transition-all duration-300"
+              className="relative rounded-2xl border border-elden-gold/40 bg-gradient-to-br from-black/90 via-elden-darkPurple/30 to-black/90 backdrop-blur-sm shadow-[0_4px_20px_rgba(212,175,55,0.1)] transition-all duration-300"
               whileFocus={{ borderColor: 'rgba(212, 175, 55, 0.8)' }}
             >
               {/* Input Row */}
