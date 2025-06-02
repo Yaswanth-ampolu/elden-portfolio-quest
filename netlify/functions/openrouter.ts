@@ -55,7 +55,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       headers: {
         'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': process.env.SITE_URL || 'https://yaswanth-portfolio.netlify.app',
+        'HTTP-Referer': process.env.SITE_URL || 'https://yaswanth-portfolio-elden.netlify.app',
         'X-Title': 'Yaswanth Portfolio Chatbot',
       },
       body: JSON.stringify({
