@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Send, Brain, Sparkles, Crown, ArrowLeft } from 'lucide-react';
+import { MessageSquare, Send, Brain, Sparkles, Crown, ArrowLeft, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface Message {
@@ -8,6 +8,7 @@ interface Message {
   content: string;
   sender: 'user' | 'ai';
   timestamp: Date;
+  provider?: string;
 }
 
 // Pattern-based responses (same as before)
@@ -49,34 +50,41 @@ const ELDEN_RESPONSES = {
   ]
 };
 
-// AI Provider configurations
+// Updated AI Provider configurations with free models
 const AI_PROVIDERS = {
-  huggingface: {
-    name: 'Hugging Face',
-    endpoint: '/api/ai/huggingface',
-    model: 'microsoft/DialoGPT-medium',
+  groq: {
+    name: 'Groq',
+    endpoint: '/api/ai/groq',
+    models: ['gemma2-9b-it', 'llama-3.1-8b-instant'],
     fallbackIndex: 0
-  },
-  openrouter: {
-    name: 'OpenRouter',
-    endpoint: '/api/ai/openrouter', 
-    model: 'nousresearch/nous-hermes-2-yi-34b:free',
-    fallbackIndex: 1
   },
   together: {
     name: 'Together AI',
-    endpoint: '/api/ai/together',
-    model: 'togethercomputer/llama-2-7b-chat',
+    endpoint: '/api/ai/together', 
+    models: ['deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free', 'meta-llama/Llama-Vision-Free'],
+    fallbackIndex: 1
+  },
+  openrouter: {
+    name: 'OpenRouter',
+    endpoint: '/api/ai/openrouter',
+    models: ['deepseek/deepseek-r1-0528-qwen3-8b:free', 'google/gemma-3n-e4b-it:free'],
     fallbackIndex: 2
+  },
+  huggingface: {
+    name: 'Hugging Face',
+    endpoint: '/api/ai/huggingface',
+    models: ['microsoft/DialoGPT-medium'],
+    fallbackIndex: 3
   }
 };
 
 class EldenChatbotEngine {
   private requestCounts: Record<string, number> = {};
   private dailyLimits: Record<string, number> = {
-    huggingface: 500,
-    openrouter: 100,
-    together: 200
+    groq: 1000,
+    together: 500,
+    openrouter: 300,
+    huggingface: 800
   };
 
   constructor() {
@@ -88,12 +96,12 @@ class EldenChatbotEngine {
     const today = new Date().toDateString();
     
     if (lastReset !== today) {
-      this.requestCounts = { huggingface: 0, openrouter: 0, together: 0 };
+      this.requestCounts = { groq: 0, together: 0, openrouter: 0, huggingface: 0 };
       localStorage.setItem('chatbot-counts', JSON.stringify(this.requestCounts));
       localStorage.setItem('chatbot-last-reset', today);
     } else {
       const saved = localStorage.getItem('chatbot-counts');
-      this.requestCounts = saved ? JSON.parse(saved) : { huggingface: 0, openrouter: 0, together: 0 };
+      this.requestCounts = saved ? JSON.parse(saved) : { groq: 0, together: 0, openrouter: 0, huggingface: 0 };
     }
   }
 
@@ -101,23 +109,24 @@ class EldenChatbotEngine {
     localStorage.setItem('chatbot-counts', JSON.stringify(this.requestCounts));
   }
 
-  private async callAIProvider(provider: string, userInput: string): Promise<string> {
+  private async callAIProvider(provider: string, userInput: string): Promise<{ response: string; provider: string }> {
     if (this.requestCounts[provider] >= this.dailyLimits[provider]) {
       throw new Error(`Daily limit reached for ${provider}`);
     }
 
     const config = AI_PROVIDERS[provider as keyof typeof AI_PROVIDERS];
     const systemPrompt = this.buildSystemPrompt();
+    const model = config.models[0]; // Use first model as default
 
     try {
       const response = await fetch(config.endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: config.model,
+          model: model,
           prompt: userInput,
           systemPrompt: systemPrompt,
-          maxTokens: 150,
+          maxTokens: 180,
           temperature: 0.7
         })
       });
@@ -128,7 +137,10 @@ class EldenChatbotEngine {
       this.requestCounts[provider]++;
       this.saveRequestCounts();
       
-      return this.styleResponse(data.response || '');
+      return {
+        response: this.styleResponse(data.response || ''),
+        provider: provider
+      };
     } catch (error) {
       console.log(`${provider} failed:`, error);
       throw error;
@@ -142,7 +154,7 @@ PERSONA: Speak in Elden Ring style - mystical, wise, medieval fantasy tone. Use 
 
 STRICT RULES:
 1. ONLY discuss Yaswanth Ampolu's professional information
-2. Keep responses under 100 words
+2. Keep responses under 120 words for mobile readability
 3. Always stay in character
 4. If asked about unrelated topics, redirect to Yaswanth's skills/experience
 5. Be helpful but maintain the mystical roleplay
@@ -178,19 +190,19 @@ Respond as the mystical guardian of this knowledge!`;
     return response;
   }
 
-  public async respond(userInput: string): Promise<string> {
+  public async respond(userInput: string): Promise<{ response: string; provider: string }> {
     const input = userInput.toLowerCase().trim();
     
-    // Try AI providers in order
-    const providers = ['huggingface', 'openrouter', 'together'];
+    // Try AI providers in order: Groq -> Together -> OpenRouter -> HuggingFace
+    const providers = ['groq', 'together', 'openrouter', 'huggingface'];
     
     for (const provider of providers) {
       try {
         console.log(`Trying ${provider}...`);
-        const response = await this.callAIProvider(provider, userInput);
-        if (response && response.length > 10) {
+        const result = await this.callAIProvider(provider, userInput);
+        if (result.response && result.response.length > 10) {
           console.log(`Success with ${provider}`);
-          return response;
+          return result;
         }
       } catch (error) {
         console.log(`${provider} failed, trying next...`);
@@ -200,7 +212,10 @@ Respond as the mystical guardian of this knowledge!`;
 
     // Final fallback: Pattern-based responses
     console.log('Using pattern-based fallback');
-    return this.getPatternBasedResponse(input);
+    return {
+      response: this.getPatternBasedResponse(input),
+      provider: 'pattern-fallback'
+    };
   }
 
   private getPatternBasedResponse(input: string): string {
@@ -229,9 +244,10 @@ const ChatbotPage: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [currentProvider, setCurrentProvider] = useState<string | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const chatbotEngine = useRef(new EldenChatbotEngine());
 
   useEffect(() => {
@@ -241,7 +257,8 @@ const ChatbotPage: React.FC = () => {
         id: '1',
         content: "Greetings, noble visitor! I am the mystical guardian of Yaswanth's knowledge. Ask me about his skills, experience, projects, or how to reach him. What wisdom dost thou seek?",
         sender: 'ai',
-        timestamp: new Date()
+        timestamp: new Date(),
+        provider: 'system'
       };
       setMessages([welcomeMessage]);
     }
@@ -266,13 +283,14 @@ const ChatbotPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await chatbotEngine.current.respond(inputValue);
+      const result = await chatbotEngine.current.respond(inputValue);
       
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: response,
+        content: result.response,
         sender: 'ai',
-        timestamp: new Date()
+        timestamp: new Date(),
+        provider: result.provider
       };
       
       setMessages(prev => [...prev, aiMessage]);
@@ -281,12 +299,16 @@ const ChatbotPage: React.FC = () => {
         id: (Date.now() + 1).toString(),
         content: "Forgive me, seeker... The mystical channels are disrupted. Please try thy query again in a moment.",
         sender: 'ai',
-        timestamp: new Date()
+        timestamp: new Date(),
+        provider: 'error'
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
-      setCurrentProvider(null);
+      // Focus back to input on mobile
+      if (window.innerWidth <= 768) {
+        setTimeout(() => inputRef.current?.focus(), 100);
+      }
     }
   };
 
@@ -307,9 +329,9 @@ const ChatbotPage: React.FC = () => {
       <div className="absolute inset-0 bg-[url('/assets/backgrounds/elden-ring-bg.css')] opacity-30"></div>
       <div className="absolute inset-0 bg-gradient-to-br from-elden-gold/5 via-transparent to-elden-darkPurple/10"></div>
       
-      {/* Floating particles */}
-      <div className="absolute inset-0">
-        {[...Array(20)].map((_, i) => (
+      {/* Floating particles - reduced for mobile performance */}
+      <div className="absolute inset-0 hidden md:block">
+        {[...Array(15)].map((_, i) => (
           <motion.div
             key={i}
             className="absolute w-1 h-1 bg-elden-gold/30 rounded-full"
@@ -318,11 +340,11 @@ const ChatbotPage: React.FC = () => {
               top: `${Math.random() * 100}%`,
             }}
             animate={{
-              y: [-20, -40, -20],
-              opacity: [0.3, 0.7, 0.3],
+              y: [-15, -30, -15],
+              opacity: [0.2, 0.6, 0.2],
             }}
             transition={{
-              duration: 3 + Math.random() * 2,
+              duration: 4 + Math.random() * 2,
               repeat: Infinity,
               delay: Math.random() * 2,
             }}
@@ -330,41 +352,73 @@ const ChatbotPage: React.FC = () => {
         ))}
       </div>
 
-      {/* Header */}
-      <div className="relative z-10 border-b border-elden-gold/30 backdrop-blur-sm bg-elden-charcoal/80">
-        <div className="container mx-auto px-4 py-6">
+      {/* Header - Mobile optimized */}
+      <div className="relative z-10 border-b border-elden-gold/30 backdrop-blur-sm bg-elden-charcoal/90">
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
+            {/* Mobile menu button */}
+            <div className="flex items-center gap-2">
+              <motion.button
+                onClick={goBack}
+                className="flex items-center gap-1 sm:gap-2 text-elden-ash hover:text-elden-gold transition-colors p-2 -ml-2"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <ArrowLeft size={18} className="sm:w-5 sm:h-5" />
+                <span className="font-elden text-sm hidden sm:block">Return</span>
+              </motion.button>
+            </div>
+            
+            {/* Center title */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Brain className="text-elden-gold w-6 h-6 sm:w-7 sm:h-7" />
+              <div className="text-center">
+                <h1 className="font-elden text-lg sm:text-2xl text-elden-gold">Wisdom Keeper</h1>
+                <p className="text-xs sm:text-sm text-elden-ash/80 hidden sm:block">Guardian of Sacred Knowledge</p>
+              </div>
+              <Crown className="text-elden-gold w-6 h-6 sm:w-7 sm:h-7" />
+            </div>
+            
+            {/* Mobile menu toggle */}
             <motion.button
-              onClick={goBack}
-              className="flex items-center gap-2 text-elden-ash hover:text-elden-gold transition-colors"
-              whileHover={{ scale: 1.05 }}
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="flex items-center gap-1 text-elden-ash/60 text-xs sm:text-sm p-2 -mr-2"
               whileTap={{ scale: 0.95 }}
             >
-              <ArrowLeft size={20} />
-              <span className="font-elden">Return to Portfolio</span>
+              {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+              <Sparkles size={14} className="animate-pulse hidden sm:block" />
             </motion.button>
-            
-            <div className="flex items-center gap-3">
-              <Brain className="text-elden-gold" size={28} />
-              <div className="text-center">
-                <h1 className="font-elden text-2xl text-elden-gold">The Wisdom Keeper</h1>
-                <p className="text-sm text-elden-ash/80">Guardian of Sacred Knowledge</p>
-              </div>
-              <Crown className="text-elden-gold" size={28} />
-            </div>
-            
-            <div className="flex items-center gap-2 text-elden-ash/60 text-sm">
-              <Sparkles size={16} className="animate-pulse" />
-              <span>Powered by AI</span>
-            </div>
           </div>
+          
+          {/* Mobile info panel */}
+          <AnimatePresence>
+            {isMobileMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mt-3 pt-3 border-t border-elden-gold/20"
+              >
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div className="text-center">
+                    <div className="text-elden-gold font-elden">Multi-AI Powered</div>
+                    <div className="text-elden-ash/70">4 Provider Fallback</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-elden-gold font-elden">Mobile Optimized</div>
+                    <div className="text-elden-ash/70">Touch Friendly</div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
-      {/* Chat Container */}
-      <div className="relative z-10 container mx-auto px-4 py-8 h-[calc(100vh-140px)] flex flex-col max-w-4xl">
+      {/* Chat Container - Mobile optimized */}
+      <div className="relative z-10 flex flex-col h-[calc(100vh-120px)] sm:h-[calc(100vh-140px)]">
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto mb-6 space-y-6 pr-2 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto px-3 sm:px-4 py-4 sm:py-6 space-y-3 sm:space-y-4 custom-scrollbar">
           <AnimatePresence>
             {messages.map((message, index) => (
               <motion.div
@@ -380,18 +434,23 @@ const ChatbotPage: React.FC = () => {
               >
                 <div
                   className={cn(
-                    "max-w-[80%] p-6 rounded-lg border backdrop-blur-sm",
+                    "max-w-[85%] sm:max-w-[75%] p-3 sm:p-4 rounded-lg border backdrop-blur-sm",
                     message.sender === 'user'
-                      ? "bg-gradient-to-br from-elden-gold/20 to-elden-gold/10 text-elden-ash border-elden-gold/40"
-                      : "bg-gradient-to-br from-elden-darkPurple/40 to-elden-charcoal/60 text-elden-ash border-elden-gold/30"
+                      ? "bg-gradient-to-br from-elden-gold/20 to-elden-gold/10 text-elden-ash border-elden-gold/40 rounded-br-sm"
+                      : "bg-gradient-to-br from-elden-darkPurple/40 to-elden-charcoal/60 text-elden-ash border-elden-gold/30 rounded-bl-sm"
                   )}
                 >
-                  <div className="font-lore leading-relaxed text-base mb-2">
+                  <div className="font-lore leading-relaxed text-sm sm:text-base mb-2">
                     {message.content}
                   </div>
                   <div className="flex items-center justify-between text-xs text-elden-ash/60">
-                    <span>
-                      {message.sender === 'user' ? 'You' : 'The Wisdom Keeper'}
+                    <span className="flex items-center gap-1">
+                      {message.sender === 'user' ? 'You' : 'Wisdom Keeper'}
+                      {message.provider && message.provider !== 'system' && (
+                        <span className="text-elden-gold/60 text-[10px]">
+                          • {message.provider}
+                        </span>
+                      )}
                     </span>
                     <span>
                       {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -408,14 +467,14 @@ const ChatbotPage: React.FC = () => {
               animate={{ opacity: 1 }}
               className="flex justify-start"
             >
-              <div className="bg-gradient-to-br from-elden-darkPurple/40 to-elden-charcoal/60 text-elden-ash border border-elden-gold/30 p-6 rounded-lg backdrop-blur-sm">
-                <div className="flex items-center gap-3">
+              <div className="bg-gradient-to-br from-elden-darkPurple/40 to-elden-charcoal/60 text-elden-ash border border-elden-gold/30 p-3 sm:p-4 rounded-lg backdrop-blur-sm max-w-[85%] sm:max-w-[75%]">
+                <div className="flex items-center gap-2 sm:gap-3">
                   <div className="flex gap-1">
-                    <div className="w-3 h-3 bg-elden-gold rounded-full animate-bounce"></div>
-                    <div className="w-3 h-3 bg-elden-gold rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-3 h-3 bg-elden-gold rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-2 h-2 sm:w-3 sm:h-3 bg-elden-gold rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 sm:w-3 sm:h-3 bg-elden-gold rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 sm:w-3 sm:h-3 bg-elden-gold rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                   </div>
-                  <span className="text-elden-ash/80 font-lore">Consulting the ancient scrolls...</span>
+                  <span className="text-elden-ash/80 font-lore text-sm">Consulting the ancient scrolls...</span>
                 </div>
               </div>
             </motion.div>
@@ -423,32 +482,34 @@ const ChatbotPage: React.FC = () => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Area */}
-        <div className="border-t border-elden-gold/30 pt-6">
-          <div className="flex gap-4 items-end">
+        {/* Input Area - Mobile optimized */}
+        <div className="border-t border-elden-gold/30 p-3 sm:p-4 bg-elden-charcoal/80 backdrop-blur-sm">
+          <div className="flex gap-2 sm:gap-3 items-end max-w-4xl mx-auto">
             <div className="flex-1">
               <textarea
+                ref={inputRef}
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Ask about skills, experience, projects, education, contact details..."
-                className="w-full px-4 py-3 bg-elden-charcoal/80 border border-elden-gold/40 rounded-lg text-elden-ash placeholder-elden-ash/60 backdrop-blur-sm focus:border-elden-gold outline-none resize-none"
+                placeholder="Ask about skills, experience, projects..."
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 bg-elden-charcoal/90 border border-elden-gold/40 rounded-lg text-elden-ash placeholder-elden-ash/60 backdrop-blur-sm focus:border-elden-gold outline-none resize-none text-sm sm:text-base"
                 rows={2}
                 disabled={isLoading}
+                style={{ minHeight: '44px' }} // Touch-friendly minimum height
               />
-              <div className="text-xs text-elden-ash/60 mt-2">
+              <div className="text-xs text-elden-ash/60 mt-1 hidden sm:block">
                 Press Enter to send • Shift+Enter for new line
               </div>
             </div>
             <motion.button
               onClick={handleSendMessage}
               disabled={!inputValue.trim() || isLoading}
-              className="px-6 py-3 bg-gradient-to-r from-elden-darkGold to-elden-gold text-black rounded-lg font-elden disabled:opacity-50 transition-all flex items-center gap-2"
+              className="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-elden-darkGold to-elden-gold text-black rounded-lg font-elden disabled:opacity-50 transition-all flex items-center gap-1 sm:gap-2 min-h-[44px] text-sm sm:text-base"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <Send size={18} />
-              <span>Send</span>
+              <Send size={16} className="sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Send</span>
             </motion.button>
           </div>
         </div>
@@ -458,18 +519,35 @@ const ChatbotPage: React.FC = () => {
       <style dangerouslySetInnerHTML={{
         __html: `
           .custom-scrollbar::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
           }
           .custom-scrollbar::-webkit-scrollbar-track {
             background: rgba(212, 175, 55, 0.1);
-            border-radius: 4px;
+            border-radius: 3px;
           }
           .custom-scrollbar::-webkit-scrollbar-thumb {
             background: rgba(212, 175, 55, 0.4);
-            border-radius: 4px;
+            border-radius: 3px;
           }
           .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: rgba(212, 175, 55, 0.6);
+          }
+          
+          /* Mobile touch improvements */
+          @media (max-width: 768px) {
+            .custom-scrollbar::-webkit-scrollbar {
+              width: 4px;
+            }
+            
+            /* Ensure touch targets are large enough */
+            button, textarea {
+              touch-action: manipulation;
+            }
+            
+            /* Prevent zoom on focus */
+            input, textarea {
+              font-size: 16px;
+            }
           }
         `
       }} />

@@ -1,14 +1,6 @@
 import { Handler, HandlerEvent, HandlerContext } from '@netlify/functions';
 
 const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
-  // Only allow POST requests
-  if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      body: JSON.stringify({ error: 'Method not allowed' }),
-    };
-  }
-
   // Enable CORS
   const headers = {
     'Access-Control-Allow-Origin': '*',
@@ -23,6 +15,15 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       statusCode: 200,
       headers,
       body: '',
+    };
+  }
+
+  // Only allow POST requests
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      headers,
+      body: JSON.stringify({ error: 'Method not allowed' }),
     };
   }
 
@@ -48,10 +49,10 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       };
     }
 
-    // Combine system prompt with user prompt
+    // Combine system prompt with user prompt for conversational AI
     const fullPrompt = `${systemPrompt}\n\nUser: ${prompt}\nAssistant:`;
 
-    // Call Hugging Face API
+    // Call Hugging Face API with a better conversational model
     const response = await fetch(
       'https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium',
       {
@@ -66,6 +67,8 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
             max_new_tokens: maxTokens,
             temperature: temperature,
             return_full_text: false,
+            do_sample: true,
+            top_p: 0.9,
           },
         }),
       }

@@ -13,6 +13,11 @@
   status = 200
 
 [[redirects]]
+  from = "/api/ai/groq"
+  to = "/.netlify/functions/groq"
+  status = 200
+
+[[redirects]]
   from = "/api/ai/openrouter"
   to = "/.netlify/functions/openrouter"
   status = 200

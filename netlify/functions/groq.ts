@@ -28,7 +28,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
   }
 
   try {
-    const { prompt, systemPrompt, maxTokens = 150, temperature = 0.7, model = 'deepseek/deepseek-r1-0528-qwen3-8b:free' } = JSON.parse(event.body || '{}');
+    const { prompt, systemPrompt, maxTokens = 150, temperature = 0.7, model = 'gemma2-9b-it' } = JSON.parse(event.body || '{}');
     
     if (!prompt) {
       return {
@@ -39,9 +39,9 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
     }
 
     // Get API key from environment variables
-    const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+    const GROQ_API_KEY = process.env.GROQ_API_KEY;
     
-    if (!OPENROUTER_API_KEY) {
+    if (!GROQ_API_KEY) {
       return {
         statusCode: 500,
         headers,
@@ -49,14 +49,12 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       };
     }
 
-    // Call OpenRouter API
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    // Call Groq API
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'Authorization': `Bearer ${GROQ_API_KEY}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': process.env.SITE_URL || 'https://yaswanth-portfolio.netlify.app',
-        'X-Title': 'Yaswanth Portfolio Chatbot',
       },
       body: JSON.stringify({
         model: model,
@@ -78,7 +76,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
     });
 
     if (!response.ok) {
-      throw new Error(`OpenRouter API error: ${response.status}`);
+      throw new Error(`Groq API error: ${response.status}`);
     }
 
     const data = await response.json();
@@ -91,13 +89,13 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       headers,
       body: JSON.stringify({
         response: generatedText.trim(),
-        provider: 'openrouter',
+        provider: 'groq',
         model: model
       }),
     };
 
   } catch (error) {
-    console.error('OpenRouter API error:', error);
+    console.error('Groq API error:', error);
     
     return {
       statusCode: 500,

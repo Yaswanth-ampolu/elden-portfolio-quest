@@ -1,6 +1,7 @@
 import { Handler, HandlerEvent, HandlerContext } from '@netlify/functions';
 
 const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
+  // Enable CORS
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type',
@@ -10,7 +11,11 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
 
   // Handle preflight requests
   if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
+    return {
+      statusCode: 200,
+      headers,
+      body: '',
+    };
   }
 
   // Only allow POST requests
@@ -23,7 +28,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
   }
 
   try {
-    const { prompt, systemPrompt, maxTokens = 150, temperature = 0.7 } = JSON.parse(event.body || '{}');
+    const { prompt, systemPrompt, maxTokens = 150, temperature = 0.7, model = 'deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free' } = JSON.parse(event.body || '{}');
     
     if (!prompt) {
       return {
@@ -33,6 +38,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
       };
     }
 
+    // Get API key from environment variables
     const TOGETHER_API_KEY = process.env.TOGETHER_API_KEY;
     
     if (!TOGETHER_API_KEY) {
@@ -51,7 +57,7 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'togethercomputer/llama-2-7b-chat',
+        model: model,
         messages: [
           {
             role: 'system',
@@ -64,6 +70,8 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
         ],
         max_tokens: maxTokens,
         temperature: temperature,
+        top_p: 0.9,
+        stream: false
       }),
     });
 
@@ -72,15 +80,17 @@ const handler: Handler = async (event: HandlerEvent, context: HandlerContext) =>
     }
 
     const data = await response.json();
+    
+    // Extract the generated text
     const generatedText = data.choices?.[0]?.message?.content || '';
 
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
-        response: generatedText,
+        response: generatedText.trim(),
         provider: 'together',
-        model: 'llama-2-7b-chat'
+        model: model
       }),
     };
 
