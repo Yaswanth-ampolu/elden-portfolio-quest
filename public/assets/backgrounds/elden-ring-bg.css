@@ -1,0 +1,104 @@
+/* Elden Ring Themed Background CSS */
+/* This creates a responsive background that works on any screen size */
+
+.elden-ring-bg {
+  background: 
+    /* Stars */
+    radial-gradient(2px 2px at 20px 30px, #FFD700, transparent),
+    radial-gradient(2px 2px at 40px 70px, #FFD700, transparent),
+    radial-gradient(1px 1px at 90px 40px, #FFD700, transparent),
+    radial-gradient(1px 1px at 130px 80px, #FFD700, transparent),
+    radial-gradient(2px 2px at 160px 30px, #FFD700, transparent),
+    
+    /* Erdtree silhouette */
+    linear-gradient(to bottom, 
+      rgba(0, 0, 0, 0.9) 0%,
+      rgba(20, 10, 5, 0.8) 30%,
+      rgba(40, 25, 15, 0.7) 50%,
+      rgba(60, 40, 25, 0.6) 70%,
+      rgba(80, 60, 40, 0.5) 100%
+    ),
+    
+    /* Golden glow */
+    radial-gradient(ellipse at center top, 
+      rgba(255, 215, 0, 0.3) 0%,
+      rgba(255, 215, 0, 0.1) 30%,
+      transparent 60%
+    ),
+    
+    /* Base dark background */
+    linear-gradient(to bottom, #0a0506, #1a0f0a);
+    
+  background-size: 
+    200px 100px,
+    200px 100px,
+    200px 100px,
+    200px 100px,
+    200px 100px,
+    100% 100%,
+    100% 100%,
+    100% 100%;
+    
+  background-repeat: repeat, repeat, repeat, repeat, repeat, no-repeat, no-repeat, no-repeat;
+  background-position: 0 0, 0 0, 0 0, 0 0, 0 0, center, center, center;
+  min-height: 100vh;
+  position: relative;
+}
+
+.elden-ring-bg::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    /* Erdtree trunk */
+    linear-gradient(to bottom, 
+      transparent 60%,
+      rgba(139, 115, 85, 0.3) 65%,
+      rgba(139, 115, 85, 0.4) 70%,
+      rgba(139, 115, 85, 0.3) 75%,
+      transparent 80%
+    ),
+    /* Erdtree branches */
+    radial-gradient(ellipse 200px 400px at 50% 20%, 
+      transparent 40%,
+      rgba(255, 215, 0, 0.2) 50%,
+      rgba(255, 215, 0, 0.1) 60%,
+      transparent 70%
+    );
+  background-size: 100% 100%, 100% 100%;
+  background-repeat: no-repeat;
+  background-position: center, center;
+  pointer-events: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .elden-ring-bg {
+    background-size: 
+      150px 75px,
+      150px 75px,
+      150px 75px,
+      150px 75px,
+      150px 75px,
+      100% 100%,
+      100% 100%,
+      100% 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .elden-ring-bg {
+    background-size: 
+      100px 50px,
+      100px 50px,
+      100px 50px,
+      100px 50px,
+      100px 50px,
+      100% 100%,
+      100% 100%,
+      100% 100%;
+  }
+} 

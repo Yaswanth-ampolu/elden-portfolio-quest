@@ -1,0 +1,139 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 35 20% 15%;
+    --foreground: 45 50% 98%;
+
+    --card: 35 15% 20%;
+    --card-foreground: 45 50% 95%;
+
+    --popover: 35 15% 10%;
+    --popover-foreground: 45 50% 95%;
+
+    --primary: 45 70% 52%;
+    --primary-foreground: 35 20% 15%;
+
+    --secondary: 35 15% 25%;
+    --secondary-foreground: 45 50% 95%;
+
+    --muted: 35 15% 25%;
+    --muted-foreground: 45 25% 80%;
+
+    --accent: 45 50% 50%;
+    --accent-foreground: 35 20% 15%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 45 50% 98%;
+
+    --border: 45 30% 40%;
+    --input: 45 30% 40%;
+    --ring: 45 70% 52%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 35 20% 15%;
+    --sidebar-foreground: 45 50% 98%;
+    --sidebar-primary: 45 70% 52%;
+    --sidebar-primary-foreground: 35 20% 15%;
+    --sidebar-accent: 35 15% 25%;
+    --sidebar-accent-foreground: 45 50% 98%;
+    --sidebar-border: 45 30% 40%;
+    --sidebar-ring: 45 70% 52%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-lore;
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.08'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-elden;
+  }
+}
+
+@layer components {
+  .elden-border {
+    @apply border-2 border-elden-gold relative;
+  }
+  
+  .elden-border::before, .elden-border::after {
+    content: "";
+    @apply absolute w-2 h-2 bg-elden-gold;
+  }
+  
+  .elden-border::before {
+    @apply top-0 left-0 transform -translate-x-1/2 -translate-y-1/2;
+  }
+  
+  .elden-border::after {
+    @apply bottom-0 right-0 transform translate-x-1/2 translate-y-1/2;
+  }
+  
+  .elden-card {
+    @apply relative overflow-hidden bg-card rounded-sm p-6 border border-elden-gold/30 shadow-lg;
+    background-image: linear-gradient(to bottom, rgba(30, 25, 20, 0.85), rgba(20, 18, 15, 0.95));
+  }
+  
+  .elden-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.5), transparent);
+  }
+  
+  .elden-title {
+    @apply font-elden text-elden-gold text-center tracking-wide;
+    text-shadow: 0 0 5px rgba(212, 175, 55, 0.5);
+  }
+  
+  .elden-button {
+    @apply px-6 py-2 font-elden border border-elden-gold/50 text-elden-gold bg-elden-charcoal/80 hover:bg-elden-darkGold/20 transition-all duration-300 uppercase tracking-wider text-sm;
+  }
+  
+  .elden-divider {
+    @apply relative h-px w-full my-8 bg-gradient-to-r from-transparent via-elden-gold/50 to-transparent;
+  }
+  
+  .elden-divider::before {
+    content: "✧";
+    @apply absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-elden-gold text-xs;
+  }
+  
+  .scroll-container {
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: theme('colors.elden.darkGold') theme('colors.elden.charcoal');
+  }
+  
+  .scroll-container::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .scroll-container::-webkit-scrollbar-track {
+    background: theme('colors.elden.charcoal');
+  }
+  
+  .scroll-container::-webkit-scrollbar-thumb {
+    background-color: theme('colors.elden.darkGold');
+    border-radius: 3px;
+  }
+  
+  .particle {
+    @apply absolute rounded-full bg-elden-gold/80 w-1 h-1 pointer-events-none;
+    box-shadow: 0 0 4px 1px rgba(212, 175, 55, 0.6);
+  }
+}
