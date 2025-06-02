@@ -85,7 +85,7 @@ YASWANTH'S PROFESSIONAL INFO (use only when specifically asked):
 - GitHub: Yaswanth-ampolu (20+ repositories)
 - Key Projects: MotivHater, Insurance Claim Prediction, RentalTruth-Scrapper
 
-IMPORTANT: Answer precisely what is asked. If they ask for phone number, give ONLY phone number with mystical flair. Don't list everything unless they ask for a full overview.
+
 
 Example:
 User: "his contact number?"
