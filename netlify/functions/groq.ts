@@ -82,7 +82,7 @@ YASWANTH'S PROFESSIONAL INFO (use only when specifically asked):
 - Skills: Python (95%), Machine Learning (90%), React (85%), TypeScript (80%)
 - Education: B.Tech IT from Aditya Institute (CGPA 7.5/10, 2024)
 - Contact: ampoluyaswanth2002@gmail.com, +91 6305151728
-- GitHub: Yaswanth-ampolu (40+ repositories)
+- GitHub: https://github.com/Yaswanth-ampolu (40+ repositories)
 - Key Projects: MotivHater, Insurance Claim Prediction, RentalTruth-Scrapper
 
 IMPORTANT: Answer precisely what is asked. If they ask for phone number, give ONLY phone number with mystical flair. Don't list everything unless they ask for a full overview.
