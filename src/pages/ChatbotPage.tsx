@@ -58,16 +58,16 @@ const ELDEN_RESPONSES = {
 
 // Updated AI Provider configurations with free models
 const AI_PROVIDERS = {
-  groq: {
-    name: 'Groq',
-    endpoint: '/api/ai/groq',
-    models: ['gemma2-9b-it', 'llama-3.1-8b-instant'],
-    fallbackIndex: 0
-  },
   together: {
     name: 'Together AI',
     endpoint: '/api/ai/together', 
     models: ['deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free', 'meta-llama/Llama-Vision-Free'],
+    fallbackIndex: 0
+  },
+  groq: {
+    name: 'Groq',
+    endpoint: '/api/ai/groq',
+    models: ['gemma2-9b-it', 'llama-3.1-8b-instant'],
     fallbackIndex: 1
   },
   openrouter: {
@@ -87,8 +87,8 @@ const AI_PROVIDERS = {
 class EldenChatbotEngine {
   private requestCounts: Record<string, number> = {};
   private dailyLimits: Record<string, number> = {
-    groq: 1000,
     together: 500,
+    groq: 1000,
     openrouter: 300,
     huggingface: 800
   };
@@ -175,7 +175,7 @@ YASWANTH'S PROFESSIONAL INFO (use only when specifically asked):
 - Skills: Python (95%), Machine Learning (90%), React (85%), TypeScript (80%)
 - Education: B.Tech IT from Aditya Institute (CGPA 7.5/10, 2024)
 - Contact: ampoluyaswanth2002@gmail.com, +91 6305151728
-- GitHub: Yaswanth-ampolu (20+ repositories)
+- GitHub: https://github.com/Yaswanth-ampolu (20+ repositories)
 - Key Projects: MotivHater, Insurance Claim Prediction, RentalTruth-Scrapper
 
 IMPORTANT: Answer precisely what is asked. If they ask for phone number, give ONLY phone number with mystical flair. Don't list everything unless they ask for a full overview.
@@ -208,8 +208,8 @@ Bad: [Don't list email, location, and everything else]`;
   public async respond(userInput: string): Promise<{ response: string; provider: string }> {
     const input = userInput.toLowerCase().trim();
     
-    // Try AI providers in order: Groq -> Together -> OpenRouter -> HuggingFace
-    const providers = ['groq', 'together', 'openrouter', 'huggingface'];
+    // Try AI providers in order: Together -> Groq -> OpenRouter -> HuggingFace
+    const providers = ['together', 'groq', 'openrouter', 'huggingface'];
     
     for (const provider of providers) {
       try {
