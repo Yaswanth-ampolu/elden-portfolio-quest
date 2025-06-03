@@ -190,7 +190,7 @@ elden-portfolio-quest/
 
 - **Current Role**: AI Application Engineer at SierraEdge Pvt Ltd
 - **Location**: Bengaluru, India
-- **Education**: B.Tech IT (CGPA: 8.5/10) from Aditya Institute of Technology and Management
+- **Education**: B.Tech IT (CGPA: 7.5/10) from Aditya Institute of Technology and Management
 - **Specializations**: AI/ML, Full Stack Development, Data Science
 - **GitHub**: 20+ repositories with diverse projects
 - **Experience**: 2+ years in professional development

@@ -58,17 +58,17 @@ const ELDEN_RESPONSES = {
 
 // Updated AI Provider configurations with free models
 const AI_PROVIDERS = {
-  together: {
-    name: 'Together AI',
-    endpoint: '/api/ai/together', 
-    models: ['deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free', 'meta-llama/Llama-Vision-Free'],
-    fallbackIndex: 0
-  },
   groq: {
     name: 'Groq',
     endpoint: '/api/ai/groq',
     models: ['gemma2-9b-it', 'llama-3.1-8b-instant'],
     fallbackIndex: 1
+  },
+  together: {
+    name: 'Together AI',
+    endpoint: '/api/ai/together', 
+    models: ['meta-llama/Llama-Vision-Free', 'deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free'],
+    fallbackIndex: 0
   },
   openrouter: {
     name: 'OpenRouter',
